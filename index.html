@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Flappy Bird - Web</title>
 <style>
-  body { margin:0; background:skyblue; overflow:hidden; font-family: Arial, sans-serif; }
+  body { margin:0; background:skyblue; overflow:hidden; }
   canvas { display:block; margin:0 auto; background:skyblue; }
   #status {
     position: absolute;
@@ -13,29 +13,7 @@
     background: rgba(0,0,0,0.5);
     color: white; padding: 5px 10px;
     border-radius: 5px;
-  }
-  #playerForm {
-    position: absolute;
-    top: 40%; left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
-  }
-  #playerForm input {
-    padding: 8px;
-    width: 200px;
-    margin-bottom: 10px;
-  }
-  #playerForm button {
-    padding: 10px 20px;
-    background: yellow;
-    border: none;
-    font-weight: bold;
-    cursor: pointer;
-    border-radius: 8px;
+    font-family: Arial, sans-serif;
   }
   #startBtn {
     position:absolute; top:50%; left:50%;
@@ -44,34 +22,21 @@
     font-size: 18px; font-weight: bold;
     background: yellow; border: none;
     cursor: pointer; border-radius: 10px;
-    display: none;
   }
 </style>
 </head>
 <body>
 
-<div id="playerForm">
-  <h3>Enter your name</h3>
-  <input id="playerName" placeholder="Your name" />
-  <br>
-  <button id="startWithName">Start Game</button>
-</div>
-
 <canvas id="gameCanvas" width="400" height="600"></canvas>
 <div id="status">Score: 0</div>
-<button id="startBtn">Restart</button>
+<button id="startBtn">Click to Start</button>
 
 <script>
-const ENDPOINT_URL = "PASTE_YOUR_WEB_APP_URL_HERE"; // Google Apps Script endpoint
-let playerName = "";
-
-// Canvas setup
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 const statusEl = document.getElementById("status");
 const startBtn = document.getElementById("startBtn");
 
-// Game variables
 let gravity = 0.10;
 let jumpStrength = -4.5;
 let birdY = canvas.height / 2;
@@ -81,49 +46,14 @@ let pipes = [];
 let score = 0;
 let gameOver = false;
 let gameStarted = false;
+let playerName = "";
+
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxGYANH_VYdGxIoHeRCeL0I4xSUBX3UFjEFf1dL6RM8YKI2tHxFF5EfS-B1pJVQ2HPB/exec"; // Replace
+
 let birdImg = new Image();
-let birdImgLoaded = false;
-birdImg.src = "https://i.postimg.cc/gJjZBzL3/Screenshot-2025-06-30-234259.png"; // PNG link
+birdImg.src = "https://i.postimg.cc/gJjZBzL3/Screenshot-2025-06-30-234259.png";
 
-birdImg.onload = () => birdImgLoaded = true;
-
-// Player name form
-document.getElementById("startWithName").addEventListener("click", () => {
-  const input = document.getElementById("playerName").value.trim();
-  if (!input) {
-    alert("Please enter your name");
-    return;
-  }
-  playerName = input;
-  document.getElementById("playerForm").style.display = "none";
-  startGame();
-});
-
-// Restart button
-startBtn.addEventListener("click", startGame);
-
-// Send score to backend
-function sendScoreToBackend(name, score) {
-  fetch(ENDPOINT_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: name, score: score })
-  })
-  .then(r => r.json())
-  .then(data => console.log("Score saved:", data))
-  .catch(err => console.error("Failed to save score:", err));
-}
-
-function startGame() {
-  birdY = canvas.height / 2;
-  birdVelocity = 0;
-  pipes = [];
-  score = 0;
-  gameOver = false;
-  gameStarted = true;
-  statusEl.innerText = "Score: 0";
-  startBtn.style.display = "none";
-}
+birdImg.onload = () => { startBtn.disabled = false; };
 
 function flap() {
   if (!gameOver) {
@@ -155,7 +85,6 @@ function updateGame() {
 
     for (let pipe of pipes) {
       pipe.x -= 2;
-
       if (
         birdX + 30 > pipe.x &&
         birdX < pipe.x + pipe.width &&
@@ -163,16 +92,13 @@ function updateGame() {
       ) {
         endGame();
       }
-
       if (!pipe.scored && pipe.x + pipe.width < birdX) {
         score++;
         pipe.scored = true;
         statusEl.innerText = "Score: " + score;
       }
     }
-
     pipes = pipes.filter(pipe => pipe.x + pipe.width > 0);
-
     if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 200) {
       spawnPipe();
     }
@@ -181,34 +107,26 @@ function updateGame() {
 
 function drawGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  if (birdImgLoaded) {
-    ctx.drawImage(birdImg, birdX, birdY, 30, 30);
-  } else {
-    ctx.fillStyle = "yellow";
-    ctx.beginPath();
-    ctx.arc(birdX + 15, birdY + 15, 15, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  ctx.drawImage(birdImg, birdX, birdY, 30, 30);
 
   ctx.fillStyle = "green";
+  ctx.font = "20px Arial";
+  ctx.textAlign = "center";
+
   for (let pipe of pipes) {
     ctx.fillRect(pipe.x, 0, pipe.width, pipe.topHeight);
-    ctx.fillRect(pipe.x, pipe.bottomY, pipe.width, canvas.height - pipe.bottomY);
-
-    ctx.fillStyle = "white";
-    ctx.font = "20px Arial";
-    ctx.textAlign = "center";
-
     ctx.save();
     ctx.translate(pipe.x + pipe.width / 2, pipe.topHeight / 2);
     ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = "white";
     ctx.fillText("TOP", 0, 0);
     ctx.restore();
 
+    ctx.fillRect(pipe.x, pipe.bottomY, pipe.width, canvas.height - pipe.bottomY);
     ctx.save();
-    ctx.translate(pipe.x + pipe.width / 2, pipe.bottomY + (canvas.height - pipe.bottomY) / 2);
+    ctx.translate(pipe.x + pipe.width / 2, pipe.bottomY + 30);
     ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = "white";
     ctx.fillText("BOTTOM", 0, 0);
     ctx.restore();
   }
@@ -216,8 +134,7 @@ function drawGame() {
   if (gameOver) {
     ctx.fillStyle = "red";
     ctx.font = "32px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2);
+    ctx.fillText("GAME OVER", canvas.width/2, canvas.height/2);
   }
 }
 
@@ -227,12 +144,36 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
+function sendScoreToBackend() {
+  fetch(WEB_APP_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: playerName, score: score })
+  }).then(r => r.json()).then(console.log).catch(console.error);
+}
+
 function endGame() {
   gameOver = true;
   gameStarted = false;
   startBtn.style.display = "block";
-  sendScoreToBackend(playerName || "Anonymous", score);
+  startBtn.innerText = "Restart";
+  sendScoreToBackend();
 }
+
+startBtn.addEventListener("click", () => {
+  if (!playerName) {
+    playerName = prompt("Enter your name:");
+    if (!playerName) return;
+  }
+  birdY = canvas.height / 2;
+  birdVelocity = 0;
+  pipes = [];
+  score = 0;
+  gameOver = false;
+  gameStarted = true;
+  statusEl.innerText = "Score: 0";
+  startBtn.style.display = "none";
+});
 
 document.addEventListener("keydown", (e) => {
   if (e.code === "Space" || e.code === "ArrowUp") flap();
