@@ -48,7 +48,7 @@ let gameOver = false;
 let gameStarted = false;
 let playerName = "";
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxGYANH_VYdGxIoHeRCeL0I4xSUBX3UFjEFf1dL6RM8YKI2tHxFF5EfS-B1pJVQ2HPB/exec"; // Replace
+const WEB_APP_URL = "PASTE_YOUR_WEB_APP_URL_HERE"; // Replace
 
 let birdImg = new Image();
 birdImg.src = "https://i.postimg.cc/gJjZBzL3/Screenshot-2025-06-30-234259.png";
@@ -181,6 +181,18 @@ document.addEventListener("keydown", (e) => {
 canvas.addEventListener("click", flap);
 
 gameLoop();
+function sendScoreToBackend(name, score) {
+  fetch("https://script.google.com/macros/s/AKfycbxe2qM1oXL2yHIoFJUcHzjc8Wuq2v3KuQ_VKlTHQmVYYlh1SGuaBw2UjZTAlid2Fr4Eeg/exec", {
+    method: "POST",
+    mode: "cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: name, score: score })
+  })
+  .then(res => res.json())
+  .then(data => console.log("Score saved:", data))
+  .catch(err => console.error("Failed to send score", err));
+}
+
 </script>
 </body>
 </html>
