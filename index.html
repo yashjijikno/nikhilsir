@@ -1,120 +1,252 @@
-import tkinter as tk
-from tkinter import ttk
-
-# Mapping for average months
-average_months_data = {
-    "Monthly": {
-        "Beginning of each month": 13 / 2,
-        "End of each month": 11 / 2,
-        "Mid of each month": 12 / 2
-    },
-    "Quarterly": {
-        "Beginning of each quarter": 15 / 2,
-        "End of each quarter": 9.5,  # 19/2
-        "Mid of each quarter": 12 / 2
-    },
-    "Half-Yearly": {
-        "Beginning of half year": 18 / 2,
-        "Mid of half year": 12 / 2,
-        "End of half year": 6 / 2
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IOD Calculator – COMION</title>
+  <meta name="description" content="Interest on Drawings (IOD) Calculator – Modern finance UI" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b1220;          /* app background */
+      --panel:#0f172a;       /* card background */
+      --muted:#94a3b8;       /* muted text */
+      --text:#e5e7eb;        /* main text */
+      --brand:#00e6a8;       /* accent */
+      --brand-2:#5bffda;     /* accent soft */
+      --danger:#ff5d5d;      /* error */
+      --shadow: 0 10px 30px rgba(0,0,0,.35), 0 6px 12px rgba(0,0,0,.25);
     }
-}
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 700px at 80% -10%, rgba(0,230,168,.15), transparent 60%),
+                  radial-gradient(900px 600px at -10% 110%, rgba(91,255,218,.1), transparent 60%),
+                  var(--bg);
+      color:var(--text);
+    }
+    .container{ max-width:980px; padding:24px; margin:0 auto; }
+    .header{
+      display:flex; align-items:center; justify-content:space-between; gap:16px;
+      padding:18px 22px; border:1px solid rgba(255,255,255,.06); border-radius:18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
+    }
+    .brand{ display:flex; align-items:center; gap:14px; }
+    .logo{
+      width:42px; height:42px; border-radius:12px; display:grid; place-items:center;
+      background: conic-gradient(from 180deg, var(--brand), var(--brand-2));
+      color:#051b13; font-weight:800; letter-spacing:.5px;
+      box-shadow: 0 10px 24px rgba(0,230,168,.28);
+    }
+    h1{ font-size: clamp(18px, 2.2vw, 24px); margin:0; letter-spacing:.4px; }
+    .subtitle{ color:var(--muted); font-size:12px; margin-top:2px }
 
-# Function to update dropdown options
-def update_second_dropdown(event=None):
-    selected_period = period_type_var.get()
-    avg_options = list(average_months_data[selected_period].keys())
-    avg_option_var.set(avg_options[0])
-    avg_dropdown['menu'].delete(0, 'end')
-    for option in avg_options:
-        avg_dropdown['menu'].add_command(label=option, command=tk._setit(avg_option_var, option))
+    .grid{ display:grid; grid-template-columns: 1.2fr .8fr; gap:22px; margin-top:22px }
+    @media (max-width:900px){ .grid{ grid-template-columns: 1fr; } }
 
-# Function to calculate interest
-def calculate_interest():
-    try:
-        amount = float(amount_entry.get())
-        no_of_months = int(months_entry.get())
-        rate = float(rate_entry.get())
-        avg_month = average_months_data[period_type_var.get()][avg_option_var.get()]
-        
-        interest = (amount * no_of_months * rate / 100 * avg_month * 1/12)
-        result_label.config(
-            text=f"💰 Your Interest on Drawing is: {interest:.2f}",
-            fg="#00ff88"
-        )
-    except ValueError:
-        result_label.config(text="❌ Please enter valid numbers!", fg="red")
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:22px; padding:22px; box-shadow:var(--shadow);
+    }
+    .card h2{ margin:0 0 14px; font-size:18px }
 
-# Main window
-root = tk.Tk()
-root.title("IOD Calculator - COMION")
-root.geometry("450x500")
-root.configure(bg="#1e1e2f")  # Dark theme
+    .row{ display:grid; gap:8px; margin-bottom:14px }
+    label{ font-weight:600; font-size:13px; color:#cbd5e1 }
+    .inline{ display:flex; gap:12px }
 
-# Header
-header_frame = tk.Frame(root, bg="#ff6f61")
-header_frame.pack(fill="x")
-tk.Label(
-    header_frame,
-    text="IOD CALCULATOR",
-    font=("Segoe UI", 20, "bold"),
-    fg="white",
-    bg="#ff6f61",
-    pady=10
-).pack()
-tk.Label(
-    header_frame,
-    text="BY COMION",
-    font=("Segoe UI", 12, "bold"),
-    fg="#ffe066",
-    bg="#ff6f61",
-    pady=2
-).pack()
+    select, input{
+      width:100%; border:1px solid rgba(255,255,255,.08); background:#0b1220;
+      color:var(--text); border-radius:12px; padding:12px 14px; font-size:14px;
+      outline:none; transition:border .2s, box-shadow .2s, transform .02s;
+    }
+    select:focus, input:focus{ border-color: rgba(0,230,168,.55); box-shadow: 0 0 0 4px rgba(0,230,168,.12); }
+    input::placeholder{ color:#6b7280 }
 
-# Styling for ttk
-style = ttk.Style()
-style.configure("TButton", font=("Segoe UI", 10, "bold"), padding=6, background="#00cc99")
-style.configure("TMenubutton", font=("Segoe UI", 10), padding=4)
+    .btn{
+      width:100%; padding:14px 16px; border-radius:14px; border:none; cursor:pointer;
+      font-weight:800; letter-spacing:.4px; background:linear-gradient(90deg, var(--brand), var(--brand-2));
+      color:#06281c; box-shadow: 0 10px 24px rgba(0,230,168,.22); transition: transform .04s ease;
+    }
+    .btn:active{ transform: translateY(1px) }
 
-# Container frame
-main_frame = tk.Frame(root, bg="#1e1e2f")
-main_frame.pack(pady=15)
+    .result{
+      display:flex; flex-direction:column; gap:10px; align-items:flex-start;
+      background: #07141a; border:1px dashed rgba(0,230,168,.35);
+      border-radius:18px; padding:16px; min-height:76px; justify-content:center;
+    }
+    .result .value{ font-size: clamp(20px, 3vw, 28px); font-weight:800 }
+    .value.positive{ color: var(--brand-2) }
+    .value.error{ color: var(--danger) }
+    .note{ color: var(--muted); font-size:12px }
 
-# Period Type
-tk.Label(main_frame, text="Select Period Type:", font=("Segoe UI", 10, "bold"), fg="white", bg="#1e1e2f").pack(pady=3)
-period_type_var = tk.StringVar(value="Monthly")
-period_dropdown = ttk.OptionMenu(main_frame, period_type_var, "Monthly", *average_months_data.keys(), command=update_second_dropdown)
-period_dropdown.pack(pady=3)
+    .pill{
+      display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.06); background: rgba(255,255,255,.03);
+      font-size:12px; color:var(--muted)
+    }
+    .footer{ margin-top:16px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between }
+    .tiny{ font-size:11px; color:#64748b }
+    .kbd{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-weight:700; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header" role="banner">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">₹</div>
+        <div>
+          <h1>IOD Calculator <span class="pill">by COMION</span></h1>
+          <div class="subtitle">Interest on Drawings • Modern Financial UI</div>
+        </div>
+      </div>
+      <div class="pill" title="Quick tip">
+        <span>Press <span class="kbd">Enter</span> to calculate</span>
+      </div>
+    </header>
 
-# Average Month Option
-tk.Label(main_frame, text="Select Average Month Option:", font=("Segoe UI", 10, "bold"), fg="white", bg="#1e1e2f").pack(pady=3)
-avg_option_var = tk.StringVar()
-avg_dropdown = ttk.OptionMenu(main_frame, avg_option_var, "")
-avg_dropdown.pack(pady=3)
-update_second_dropdown()
+    <main class="grid" role="main">
+      <section class="card" aria-label="Inputs">
+        <h2>Inputs</h2>
+        <div class="row">
+          <label for="periodType">Select Period Type</label>
+          <select id="periodType" aria-label="Select Period Type">
+            <option value="Monthly">Monthly</option>
+            <option value="Quarterly">Quarterly</option>
+            <option value="Half-Yearly">Half-Yearly</option>
+          </select>
+        </div>
 
-# Amount Entry
-tk.Label(main_frame, text="Enter Drawing Amount:", font=("Segoe UI", 10, "bold"), fg="white", bg="#1e1e2f").pack(pady=3)
-amount_entry = tk.Entry(main_frame, font=("Segoe UI", 10), bg="#333344", fg="white", relief="flat", justify="center")
-amount_entry.pack(pady=3, ipady=4)
+        <div class="row">
+          <label for="avgOption">Select Average Month Option</label>
+          <select id="avgOption" aria-label="Select Average Month Option"></select>
+        </div>
 
-# Months Entry
-tk.Label(main_frame, text="Enter Number of Months:", font=("Segoe UI", 10, "bold"), fg="white", bg="#1e1e2f").pack(pady=3)
-months_entry = tk.Entry(main_frame, font=("Segoe UI", 10), bg="#333344", fg="white", relief="flat", justify="center")
-months_entry.pack(pady=3, ipady=4)
+        <div class="inline">
+          <div class="row" style="flex:1">
+            <label for="amount">Enter Drawing Amount</label>
+            <input id="amount" inputmode="decimal" placeholder="e.g., 50000" />
+          </div>
+          <div class="row" style="width:180px">
+            <label for="months">Number of Months</label>
+            <input id="months" inputmode="numeric" placeholder="e.g., 12" />
+          </div>
+        </div>
 
-# Rate Entry
-tk.Label(main_frame, text="Enter Rate of Interest (%):", font=("Segoe UI", 10, "bold"), fg="white", bg="#1e1e2f").pack(pady=3)
-rate_entry = tk.Entry(main_frame, font=("Segoe UI", 10), bg="#333344", fg="white", relief="flat", justify="center")
-rate_entry.pack(pady=3, ipady=4)
+        <div class="row">
+          <label for="rate">Rate of Interest (%)</label>
+          <input id="rate" inputmode="decimal" placeholder="e.g., 10" />
+        </div>
 
-# Calculate Button
-calc_btn = tk.Button(root, text="CALCULATE", font=("Segoe UI", 12, "bold"), bg="#00cc99", fg="black", relief="flat", command=calculate_interest)
-calc_btn.pack(pady=15, ipadx=20, ipady=5)
+        <button class="btn" id="calcBtn">CALCULATE</button>
+      </section>
 
-# Result Label
-result_label = tk.Label(root, text="", font=("Segoe UI", 12, "bold"), bg="#1e1e2f")
-result_label.pack(pady=10)
+      <aside class="card" aria-label="Result and Info">
+        <h2>Result</h2>
+        <div class="result" id="resultBox" role="status" aria-live="polite">
+          <div class="value" id="resultText">Enter values and hit Calculate</div>
+          <div class="note" id="metaText"></div>
+        </div>
 
-root.mainloop()
-(isko html css or java script me convert kar de badiya se stylish mordan finencial look type )
+        <div class="footer">
+          <div class="tiny">Formula: Amount × Months × (Rate/100) × (Avg Months ÷ 12)</div>
+          <div class="tiny">Locale: en-IN • ₹ formatting</div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    const averageMonthsData = {
+      "Monthly": {
+        "Beginning of each month": 13/2,
+        "End of each month": 11/2,
+        "Mid of each month": 12/2
+      },
+      "Quarterly": {
+        "Beginning of each quarter": 15/2,
+        "End of each quarter": 19/2, // 9.5
+        "Mid of each quarter": 12/2
+      },
+      "Half-Yearly": {
+        "Beginning of half year": 18/2,
+        "Mid of half year": 12/2,
+        "End of half year": 6/2
+      }
+    };
+
+    const periodTypeEl = document.getElementById('periodType');
+    const avgOptionEl = document.getElementById('avgOption');
+    const amountEl = document.getElementById('amount');
+    const monthsEl = document.getElementById('months');
+    const rateEl = document.getElementById('rate');
+    const resultTextEl = document.getElementById('resultText');
+    const metaTextEl = document.getElementById('metaText');
+    const resultBoxEl = document.getElementById('resultBox');
+
+    const inr = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 });
+
+    function updateSecondDropdown(){
+      const selected = periodTypeEl.value;
+      const options = Object.keys(averageMonthsData[selected]);
+      avgOptionEl.innerHTML = '';
+      options.forEach((opt, i)=>{
+        const o = document.createElement('option');
+        o.value = opt; o.textContent = opt; if(i===0) o.selected = true; avgOptionEl.appendChild(o);
+      });
+    }
+
+    function parseNum(el){
+      const v = String(el.value).replace(/[,\s]/g,'');
+      const n = Number(v);
+      return Number.isFinite(n) ? n : NaN;
+    }
+
+    function calculate(){
+      const amount = parseNum(amountEl);
+      const months = parseNum(monthsEl);
+      const rate = parseNum(rateEl);
+      const period = periodTypeEl.value;
+      const avgKey = avgOptionEl.value;
+      const avgMonth = averageMonthsData[period]?.[avgKey];
+
+      // Basic validation
+      if(!isFinite(amount) || !isFinite(months) || !isFinite(rate) || !isFinite(avgMonth) || amount<=0 || months<=0 || rate<0){
+        resultTextEl.textContent = '❌ Please enter valid positive numbers';
+        resultTextEl.className = 'value error';
+        metaTextEl.textContent = '';
+        return;
+      }
+
+      const interest = amount * months * (rate/100) * (avgMonth/12);
+      resultTextEl.textContent = `💰 Your Interest on Drawings is: ${inr.format(interest)}`;
+      resultTextEl.className = 'value positive';
+      metaTextEl.textContent = `${period} • ${avgKey} • Avg months = ${avgMonth.toFixed(2)}`;
+    }
+
+    // Wiring
+    periodTypeEl.addEventListener('change', updateSecondDropdown);
+    document.getElementById('calcBtn').addEventListener('click', calculate);
+
+    // Enter key triggers calculate
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){
+        calculate();
+      }
+    });
+
+    // Initialize
+    updateSecondDropdown();
+
+    // Prefill sensible defaults for demo
+    amountEl.value = '50000';
+    monthsEl.value = '12';
+    rateEl.value = '10';
+  </script>
+</body>
+</html>
