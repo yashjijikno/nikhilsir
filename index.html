@@ -259,13 +259,27 @@
         return;
       }
 
-      const interest = amount * months * (rate/100) * (avgMonth/12) * (1/12);
+      const interest = amount * months * (rate/100) * (avgMonth) * (1/12);
       resultTextEl.textContent = `💰 Your Interest on Drawings is: ${inr.format(interest)}`;
       resultTextEl.className = 'value positive';
       metaTextEl.textContent = `${period} • ${avgKey} • Avg months = ${avgMonth.toFixed(2)}`;
     }
 
-    periodTypeEl.addEventListener('change', updateSecondDropdown);
+    periodTypeEl.addEventListener('change', function () {
+  updateSecondDropdown();
+
+  if (periodTypeEl.value === 'Quarterly') {
+    document.querySelector('label[for="months"]').textContent = "Number of Quarters";
+    monthsEl.placeholder = "Enter No. of Quarters";
+  } else if (periodTypeEl.value === 'Half-Yearly') {
+    document.querySelector('label[for="months"]').textContent = "Number of Half-Years";
+    monthsEl.placeholder = "Enter No. of Half-Years";
+  } else {
+    document.querySelector('label[for="months"]').textContent = "Number of Months";
+    monthsEl.placeholder = "Enter No. of Months";
+  }
+});
+
     document.getElementById('calcBtn').addEventListener('click', calculate);
     document.addEventListener('keydown', (e)=>{ if(e.key==='Enter') calculate(); });
 
@@ -277,5 +291,4 @@
   </script>
 </body>
 </html>
-
 
