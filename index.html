@@ -259,7 +259,7 @@
         return;
       }
 
-      const interest = amount * months * (rate/100) * (avgMonth/12);
+      const interest = amount * months * (rate/100) * (avgMonth/12) * (1/12);
       resultTextEl.textContent = `💰 Your Interest on Drawings is: ${inr.format(interest)}`;
       resultTextEl.className = 'value positive';
       metaTextEl.textContent = `${period} • ${avgKey} • Avg months = ${avgMonth.toFixed(2)}`;
@@ -277,4 +277,5 @@
   </script>
 </body>
 </html>
+
 
