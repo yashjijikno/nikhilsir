@@ -1,132 +1,120 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Flappy Bird with Score Save</title>
-  <style>
-    body { text-align: center; background-color: #70c5ce; margin: 0; }
-    canvas { background: #70c5ce; display: block; margin: auto; }
-    #startScreen { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; }
-    #startScreen input { padding: 8px; }
-    #startScreen button { padding: 8px; }
-  </style>
-</head>
-<body>
+import tkinter as tk
+from tkinter import ttk
 
-<div id="startScreen">
-  <h2>Enter your name</h2>
-  <input type="text" id="playerName" placeholder="Your name">
-  <button onclick="startGame()">Start</button>
-</div>
-
-<canvas id="gameCanvas" width="400" height="600"></canvas>
-
-<script>
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-
-let playerName = "";
-let bird = { x: 50, y: 150, radius: 15, velocity: 0 };
-let gravity = 0.4, jump = -7;
-let pipes = [], pipeGap = 150, pipeWidth = 40, pipeSpeed = 2;
-let score = 0, gameOver = false, started = false;
-
-function startGame() {
-  const nameInput = document.getElementById("playerName").value.trim();
-  if (!nameInput) return alert("Please enter your name!");
-  playerName = nameInput;
-  document.getElementById("startScreen").style.display = "none";
-  resetGame();
-  started = true;
-  requestAnimationFrame(gameLoop);
-}
-
-function resetGame() {
-  bird.y = 150;
-  bird.velocity = 0;
-  pipes = [];
-  score = 0;
-  gameOver = false;
-}
-
-document.addEventListener("keydown", e => {
-  if (e.code === "Space" && !gameOver) bird.velocity = jump;
-  if (e.code === "Space" && gameOver) { resetGame(); started = true; }
-});
-
-function spawnPipe() {
-  let topHeight = Math.random() * (canvas.height - pipeGap - 100) + 50;
-  pipes.push({ x: canvas.width, topHeight: topHeight });
-}
-
-function updateGame() {
-  bird.velocity += gravity;
-  bird.y += bird.velocity;
-
-  if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 200) spawnPipe();
-
-  for (let i = 0; i < pipes.length; i++) {
-    pipes[i].x -= pipeSpeed;
-
-    if (pipes[i].x + pipeWidth < bird.x && !pipes[i].scored) {
-      score++;
-      pipes[i].scored = true;
+# Mapping for average months
+average_months_data = {
+    "Monthly": {
+        "Beginning of each month": 13 / 2,
+        "End of each month": 11 / 2,
+        "Mid of each month": 12 / 2
+    },
+    "Quarterly": {
+        "Beginning of each quarter": 15 / 2,
+        "End of each quarter": 9.5,  # 19/2
+        "Mid of each quarter": 12 / 2
+    },
+    "Half-Yearly": {
+        "Beginning of half year": 18 / 2,
+        "Mid of half year": 12 / 2,
+        "End of half year": 6 / 2
     }
-
-    if (
-      bird.x + bird.radius > pipes[i].x &&
-      bird.x - bird.radius < pipes[i].x + pipeWidth &&
-      (bird.y - bird.radius < pipes[i].topHeight ||
-       bird.y + bird.radius > pipes[i].topHeight + pipeGap)
-    ) {
-      endGame();
-    }
-  }
-
-  if (bird.y + bird.radius > canvas.height || bird.y - bird.radius < 0) endGame();
 }
 
-function drawGame() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+# Function to update dropdown options
+def update_second_dropdown(event=None):
+    selected_period = period_type_var.get()
+    avg_options = list(average_months_data[selected_period].keys())
+    avg_option_var.set(avg_options[0])
+    avg_dropdown['menu'].delete(0, 'end')
+    for option in avg_options:
+        avg_dropdown['menu'].add_command(label=option, command=tk._setit(avg_option_var, option))
 
-  ctx.fillStyle = "green";
-  for (let pipe of pipes) {
-    ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
-    ctx.fillRect(pipe.x, pipe.topHeight + pipeGap, pipeWidth, canvas.height);
-  }
+# Function to calculate interest
+def calculate_interest():
+    try:
+        amount = float(amount_entry.get())
+        no_of_months = int(months_entry.get())
+        rate = float(rate_entry.get())
+        avg_month = average_months_data[period_type_var.get()][avg_option_var.get()]
+        
+        interest = (amount * no_of_months * rate / 100 * avg_month * 1/12)
+        result_label.config(
+            text=f"💰 Your Interest on Drawing is: {interest:.2f}",
+            fg="#00ff88"
+        )
+    except ValueError:
+        result_label.config(text="❌ Please enter valid numbers!", fg="red")
 
-  ctx.beginPath();
-  ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
-  ctx.fillStyle = "yellow";
-  ctx.fill();
+# Main window
+root = tk.Tk()
+root.title("IOD Calculator - COMION")
+root.geometry("450x500")
+root.configure(bg="#1e1e2f")  # Dark theme
 
-  ctx.fillStyle = "black";
-  ctx.font = "20px Arial";
-  ctx.fillText("Score: " + score, 10, 20);
-}
+# Header
+header_frame = tk.Frame(root, bg="#ff6f61")
+header_frame.pack(fill="x")
+tk.Label(
+    header_frame,
+    text="IOD CALCULATOR",
+    font=("Segoe UI", 20, "bold"),
+    fg="white",
+    bg="#ff6f61",
+    pady=10
+).pack()
+tk.Label(
+    header_frame,
+    text="BY COMION",
+    font=("Segoe UI", 12, "bold"),
+    fg="#ffe066",
+    bg="#ff6f61",
+    pady=2
+).pack()
 
-function gameLoop() {
-  if (!started) return;
-  updateGame();
-  drawGame();
-  if (!gameOver) requestAnimationFrame(gameLoop);
-}
+# Styling for ttk
+style = ttk.Style()
+style.configure("TButton", font=("Segoe UI", 10, "bold"), padding=6, background="#00cc99")
+style.configure("TMenubutton", font=("Segoe UI", 10), padding=4)
 
-function endGame() {
-  gameOver = true;
-  sendScoreToBackend(playerName, score);
-}
+# Container frame
+main_frame = tk.Frame(root, bg="#1e1e2f")
+main_frame.pack(pady=15)
 
-function sendScoreToBackend(name, score) {
-  fetch("https://script.google.com/macros/s/AKfycbxe2qM1oXL2yHIoFJUcHzjc8Wuq2v3KuQ_VKlTHQmVYYlh1SGuaBw2UjZTAlid2Fr4Eeg/exec", {
-    method: "POST",
-    mode: "cors",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: name, score: score })
-  })
-  .then(res => res.json())
-  .then(data => console.log("Score saved:", data))
-  .catch(err => console.error("Failed to send score", err));
-}
-</script>
-</body>
-</html>
+# Period Type
+tk.Label(main_frame, text="Select Period Type:", font=("Segoe UI", 10, "bold"), fg="white", bg="#1e1e2f").pack(pady=3)
+period_type_var = tk.StringVar(value="Monthly")
+period_dropdown = ttk.OptionMenu(main_frame, period_type_var, "Monthly", *average_months_data.keys(), command=update_second_dropdown)
+period_dropdown.pack(pady=3)
+
+# Average Month Option
+tk.Label(main_frame, text="Select Average Month Option:", font=("Segoe UI", 10, "bold"), fg="white", bg="#1e1e2f").pack(pady=3)
+avg_option_var = tk.StringVar()
+avg_dropdown = ttk.OptionMenu(main_frame, avg_option_var, "")
+avg_dropdown.pack(pady=3)
+update_second_dropdown()
+
+# Amount Entry
+tk.Label(main_frame, text="Enter Drawing Amount:", font=("Segoe UI", 10, "bold"), fg="white", bg="#1e1e2f").pack(pady=3)
+amount_entry = tk.Entry(main_frame, font=("Segoe UI", 10), bg="#333344", fg="white", relief="flat", justify="center")
+amount_entry.pack(pady=3, ipady=4)
+
+# Months Entry
+tk.Label(main_frame, text="Enter Number of Months:", font=("Segoe UI", 10, "bold"), fg="white", bg="#1e1e2f").pack(pady=3)
+months_entry = tk.Entry(main_frame, font=("Segoe UI", 10), bg="#333344", fg="white", relief="flat", justify="center")
+months_entry.pack(pady=3, ipady=4)
+
+# Rate Entry
+tk.Label(main_frame, text="Enter Rate of Interest (%):", font=("Segoe UI", 10, "bold"), fg="white", bg="#1e1e2f").pack(pady=3)
+rate_entry = tk.Entry(main_frame, font=("Segoe UI", 10), bg="#333344", fg="white", relief="flat", justify="center")
+rate_entry.pack(pady=3, ipady=4)
+
+# Calculate Button
+calc_btn = tk.Button(root, text="CALCULATE", font=("Segoe UI", 12, "bold"), bg="#00cc99", fg="black", relief="flat", command=calculate_interest)
+calc_btn.pack(pady=15, ipadx=20, ipady=5)
+
+# Result Label
+result_label = tk.Label(root, text="", font=("Segoe UI", 12, "bold"), bg="#1e1e2f")
+result_label.pack(pady=10)
+
+root.mainloop()
+(isko html css or java script me convert kar de badiya se stylish mordan finencial look type )
